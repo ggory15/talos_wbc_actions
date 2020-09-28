@@ -65,15 +65,7 @@ bool COMAction::cycleHook(const ros::Time &time)
   {
     PAL_THROW_DEFAULT("not supported for Single Support");
   }
-  
-  // else if (support_type_ == +SupporType::LEFT)
-  // {
-  //   local_coordinate_frame = actual_left_foot_pose;
-  // }
-  // else if (support_type_ == +SupporType::RIGHT)
-  // {
-  //   local_coordinate_frame = actual_right_foot_pose;
-  // }
+
 
   eMatrixHom2d local_coordinate_frame_2d;
   pal::convert(local_coordinate_frame, local_coordinate_frame_2d);
@@ -100,61 +92,42 @@ bool COMAction::cycleHook(const ros::Time &time)
     configure_interpolator_ = false;
   }
 
+  eVector2 local_target_dcm;
+  eVector2 local_target_dcm_vel;
+  eVector2 local_target_dcm_acc;
+
   if (internal_time_ < control_time_){
-    eVector2 local_target_dcm;
-    eVector2 local_target_dcm_vel;
-    eVector2 local_target_dcm_acc;
     icp_interpolator_->query(internal_time_, local_target_dcm, local_target_dcm_vel,
                             local_target_dcm_acc);
-
-    eVector2 global_target_dcm = local_coordinate_frame_2d * local_target_dcm;
-    eVector2 global_target_cop = global_target_dcm;
-    eVector2 global_target_dcm_vel = local_coordinate_frame_2d.rotation() * local_target_dcm_vel;
-    double desired_z = local_coordinate_frame.translation().z() + bc_->getParameters()->z_height_ ;
-    double desired_z_d = 0.;
-
-    eVector3 targetCOM;
-    targetCOM << global_target_dcm.x(), global_target_dcm.y(), desired_z;
-    eVector3 targetCOM_vel;
-    targetCOM_vel << global_target_dcm_vel.x(), global_target_dcm_vel.y(), desired_z_d;
-
-    control(bc_, rate_limiter_, targetCOM, targetCOM_vel, global_target_cop,
-            parameters_.use_rate_limited_dcm_, targetCOP_rate_limited_unclamped_,
-            targetCOP_unclamped_);
-
-    bc_->setDesiredBaseOrientation(eQuaternion(matrixRollPitchYaw(0., 0., 0)));
-    bc_->setDesiredTorsoOrientation(eQuaternion(matrixRollPitchYaw(0., 0., 0)));
   }
   else if (internal_time_ >= control_time_)
   {
-    eVector2 local_target_dcm;
-    eVector2 local_target_dcm_vel;
-    eVector2 local_target_dcm_acc;
     icp_interpolator_->query(control_time_, local_target_dcm, local_target_dcm_vel,
                             local_target_dcm_acc);
-
-    eVector2 global_target_dcm = local_coordinate_frame_2d * local_target_dcm;
-    eVector2 global_target_cop = global_target_dcm;
-    eVector2 global_target_dcm_vel = local_coordinate_frame_2d.rotation() * local_target_dcm_vel;
-    double desired_z = local_coordinate_frame.translation().z() + bc_->getParameters()->z_height_ ;
-    double desired_z_d = 0.;
-
-    eVector3 targetCOM;
-    targetCOM << global_target_dcm.x(), global_target_dcm.y(), desired_z;
-    eVector3 targetCOM_vel;
-    targetCOM_vel << global_target_dcm_vel.x(), global_target_dcm_vel.y(), desired_z_d;
-
-    control(bc_, rate_limiter_, targetCOM, targetCOM_vel, global_target_cop,
-            parameters_.use_rate_limited_dcm_, targetCOP_rate_limited_unclamped_,
-            targetCOP_unclamped_);
-
-    bc_->setDesiredBaseOrientation(eQuaternion(matrixRollPitchYaw(0., 0., 0)));
-    bc_->setDesiredTorsoOrientation(eQuaternion(matrixRollPitchYaw(0., 0., 0)));
   }
 
   if (internal_time_ == control_time_){
     ROS_INFO_STREAM("Done");
   }
+
+  eVector2 global_target_dcm = local_coordinate_frame_2d * local_target_dcm;
+  eVector2 global_target_cop = global_target_dcm;
+  eVector2 global_target_dcm_vel = local_coordinate_frame_2d.rotation() * local_target_dcm_vel;
+  double desired_z = local_coordinate_frame.translation().z() + bc_->getParameters()->z_height_ ;
+  double desired_z_d = 0.;
+
+  eVector3 targetCOM;
+  targetCOM << global_target_dcm.x(), global_target_dcm.y(), desired_z;
+  eVector3 targetCOM_vel;
+  targetCOM_vel << global_target_dcm_vel.x(), global_target_dcm_vel.y(), desired_z_d;
+
+  control(bc_, rate_limiter_, targetCOM, targetCOM_vel, global_target_cop,
+          parameters_.use_rate_limited_dcm_, targetCOP_rate_limited_unclamped_,
+          targetCOP_unclamped_);
+
+  bc_->setDesiredBaseOrientation(eQuaternion(matrixRollPitchYaw(0., 0., 0)));
+  bc_->setDesiredTorsoOrientation(eQuaternion(matrixRollPitchYaw(0., 0., 0)));
+  
   internal_time_ += bc_->getControllerDt();
 
 
