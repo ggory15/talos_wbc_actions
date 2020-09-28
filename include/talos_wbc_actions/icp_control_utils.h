@@ -47,7 +47,63 @@ private:
 class CSVReader
 {
 public:
-  CSVReader(const std::string &filename, const std::string)
+  CSVReader(const std::string &filename, const std::string &delimeter = ",") 
+  {
+    arma_matrix = readCSV(filename, delimeter);
+    eigen_matrix = arma2eigen(arma_matrix);
+  }
+
+  Eigen::MatrixXd row(int index)
+  {
+    return eigen_matrix.row(index);
+  }
+
+  arma::mat readCSV(const std::string &filename, const std::string &delimeter = ",")
+{
+    std::ifstream csv(filename);
+    std::vector<std::vector<double>> datas;
+
+    for(std::string line; std::getline(csv, line); ) {
+
+        std::vector<double> data;
+
+        // split string by delimeter
+        auto start = 0U;
+        auto end = line.find(delimeter);
+        while (end != std::string::npos) {
+            data.push_back(std::stod(line.substr(start, end - start)));
+            start = end + delimeter.length();
+            end = line.find(delimeter, start);
+        }
+        data.push_back(std::stod(line.substr(start, end)));
+        datas.push_back(data);
+    }
+
+    arma::mat data_mat = arma::zeros<arma::mat>(datas.size(), datas[0].size());
+
+    for (int i=0; i<datas.size(); i++) {
+        arma::mat r(datas[i]);
+        data_mat.row(i) = r.t();
+    }
+
+    return data_mat;
 }
+
+  Eigen::MatrixXd arma2eigen(arma::mat arma_M) {
+    Eigen::MatrixXd eigen_M = Eigen::Map<Eigen::MatrixXd>(arma_M.memptr(), arma_M.n_rows, arma_M.n_cols);
+    return eigen_M;
+}
+
+  arma::mat eigen2arma(Eigen::MatrixXd eigen_M) {
+    arma::mat arma_M = arma::mat(eigen_M.data(), eigen_M.rows(), eigen_M.cols(),false, false);
+    return arma_M;
+}
+
+private:
+
+  arma::mat arma_matrix;
+  Eigen::MatrixXd eigen_matrix;
+
+};
 
 #endif
