@@ -1,0 +1,12 @@
+<library path="lib/libtalos_wbc_actions_plugins">
+
+  <class name="pal_locomotion::COMAction" type="pal_locomotion::COMAction" base_class_type="pal_locomotion::WalkingActionBase">
+    <description>
+     Action
+    </description>
+  </class>
+
+
+
+</library>
+
