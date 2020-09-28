@@ -10,6 +10,7 @@
 #define _ICP_CONTROL_UTILS_
 
 #include <pal_locomotion/biped_controller.h>
+#include <armadillo>
 
 namespace pal_locomotion
 {
@@ -41,6 +42,12 @@ private:
   ros::Time start_time_;
   ros::Time end_time_;      
 };
+}
+
+class CSVReader
+{
+public:
+  CSVReader(const std::string &filename, const std::string)
 }
 
 #endif

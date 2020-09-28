@@ -4,6 +4,7 @@ project(talos_wbc_actions)
 add_compile_options(-std=c++11)
 
 find_package(catkin REQUIRED pal_locomotion pluginlib)
+find_package(Armadillo REQUIRED) 
 
 catkin_package(
     INCLUDE_DIRS include
@@ -24,10 +25,7 @@ add_subdirectory(src/nodes)
 
 add_library(${PROJECT_NAME} src/icp_control_utils.cpp
                             ${SRC})
-target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES})
-
-#add_executable(start_wbc_action src/start_wbc_action.cpp)
-#target_link_libraries(start_wbc_action ${catkin_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} ${ARMADILLO_LIBRARIES})
 
 install(TARGETS ${PROJECT_NAME}
     ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
